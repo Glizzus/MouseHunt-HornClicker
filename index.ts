@@ -36,7 +36,7 @@ async function login(driver: WebDriver, username: string, password: string) {
     ]);
     await driver.executeScript("app.pages.LoginPage.loginHitGrab();");
     
-    await driver.wait(until.urlIs("https://www.mousehuntgame.com/camp.php"));
+    await driver.wait(until.urlIs("https://www.mousehuntgame.com/camp.php"), 1000 * 15);
     console.log('User has logged in');
     return driver;
 }
@@ -189,7 +189,7 @@ async function main() {
         try {
             // Mitigate any infinite failing loops
             await sleep(1000 * 15); 
-            const driver = await init(false);
+            const driver = await init();
             await login(driver, username, password);
             await handleHorn(driver);
         } catch (err) {
