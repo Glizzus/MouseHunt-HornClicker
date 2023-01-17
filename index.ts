@@ -35,7 +35,7 @@ async function login(driver: WebDriver, username: string, password: string) {
         findInput('password').sendKeys(password)
     ]);
     await driver.executeScript("app.pages.LoginPage.loginHitGrab();");
-    
+    await driver.navigate().refresh();
     await driver.wait(until.urlIs("https://www.mousehuntgame.com/camp.php"), 1000 * 15);
     console.log('User has logged in');
     return driver;
