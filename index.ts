@@ -11,8 +11,8 @@ async function sleep(ms: number) {
  * Intializes a headless firefox browser and goes to the MouseHunt login page
  * @returns the created driver
  */
-async function init(headless = true) {
-    let options = new firefox.Options().headless();
+async function init(headless: boolean = true) {
+    let options = new firefox.Options();
     if (headless) {
         options = options.headless();
     }
@@ -120,6 +120,7 @@ async function handlePotentialCaptcha(driver: WebDriver) {
             console.log("Captcha text:", filteredText);
             await enterCaptcha(driver, filteredText);
             await driver.executeScript("app.views.HeadsUpDisplayView.hud.resumeHunting()");
+            await driver.navigate().refresh();
         }
     } catch (err) {
         console.log("Error solving captcha:", (err as any).toString());
@@ -189,7 +190,7 @@ async function main() {
         try {
             // Mitigate any infinite failing loops
             await sleep(1000 * 15); 
-            const driver = await init();
+            const driver = await init(false);
             await login(driver, username, password);
             await handleHorn(driver);
         } catch (err) {
