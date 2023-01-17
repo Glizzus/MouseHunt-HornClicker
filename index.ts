@@ -190,7 +190,7 @@ async function main() {
         try {
             // Mitigate any infinite failing loops
             await sleep(1000 * 15); 
-            const driver = await init(false);
+            const driver = await init();
             await login(driver, username, password);
             await handleHorn(driver);
         } catch (err) {
