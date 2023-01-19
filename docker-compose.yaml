@@ -3,6 +3,7 @@ version: "3.5"
 services:
   mousehunt:
     build: .
+    restart: unless-stopped
     environment:
       - MOUSEHUNT_USERNAME=
       - MOUSEHUNT_PASSWORD=
