@@ -3,7 +3,6 @@ from typing import IO, Tuple
 from re import sub
 from time import sleep
 from traceback import print_exc
-from subprocess import run
 from getpass import getpass
 from requests import get
 
@@ -145,7 +144,6 @@ def handle_horn(driver: WebDriver) -> None:
 
 def get_credentials() -> Tuple[str, str]:
     from os import environ
-    from sys import argv
 
     username = environ.get('MOUSEHUNT_USERNAME')
     if not username:
