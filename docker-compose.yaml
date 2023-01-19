@@ -4,5 +4,5 @@ services:
   mousehunt:
     build: .
     environment:
-      - username=${MOUSEHUNT_USERNAME}
-      - password=${MOUSEHUNT_PASSWORD}
+      - MOUSEHUNT_USERNAME=
+      - MOUSEHUNT_PASSWORD=
