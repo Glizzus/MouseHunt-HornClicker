@@ -1,13 +1,11 @@
-
-from typing import IO, Tuple
-from re import sub
+from typing import Tuple
 from time import sleep
 from traceback import print_exc
 from getpass import getpass
-from requests import get
+from os import environ
 
-import cv2
-import pytesseract
+import captchabeater
+import evador
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -56,36 +54,6 @@ def try_get_captcha_source(driver: WebDriver) -> str | None:
         return None
 
 
-def enter_captcha(driver: WebDriver, solution: str) -> None:
-    input_selector = "input.mousehuntPage-puzzle-form-code"
-    input_element = driver.find_element(By.CSS_SELECTOR, input_selector)
-    input_element.send_keys(solution)
-    submit_script = "app.views.HeadsUpDisplayView.hud.submitPuzzleForm();"
-    driver.execute_script(submit_script)
-
-
-def download_to_temp_file(url: str) -> IO[bytes]:
-    img = get(url).content
-    with open('captcha.png', 'wb') as file:
-        file.write(img)
-    return file.name
-
-
-# This code is best treated as a black box
-# https://stackoverflow.com/questions/65930463/how-to-process-this-captcha-image-for-pytesseract
-
-def extract_text(img_path: str) -> str:
-    img = cv2.imread(img_path)
-    grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    (height, width) = grey.shape[:2]
-    grey = cv2.resize(grey, (width * 2, height * 2))
-    close = cv2.morphologyEx(grey, cv2.MORPH_CLOSE, None)
-    thresh_type = cv2.THRESH_BINARY | cv2.THRESH_OTSU
-    threshold = cv2.threshold(close, 0, 255, thresh_type)[1]
-    text = pytesseract.image_to_string(threshold)
-    return text.split()[0]
-
-
 def handle_potential_captcha(driver: WebDriver) -> None:
     captcha_found = False
     try:
@@ -97,13 +65,7 @@ def handle_potential_captcha(driver: WebDriver) -> None:
             else:
                 break
             print("Captcha found")
-            image_file = download_to_temp_file(captcha_source)
-            attempt = extract_text(image_file)
-            cleaned_attempt = sub('/[^0-9a-z]/gi', '', attempt)
-            print(f"Captcha attempt: {cleaned_attempt}")
-            enter_captcha(driver, cleaned_attempt)
-            resume_script = "app.views.HeadsUpDisplayView.hud.resumeHunting()"
-            driver.execute_script(resume_script)
+            captchabeater.beat(driver, captchabeater)
     except Exception:
         print_exc()
     finally:
@@ -137,13 +99,14 @@ def handle_horn(driver: WebDriver) -> None:
             wait_until_horn_ready(driver)
             print("Sounding Horn")
             sound_horn(driver)
-            driver.refresh()
-        except Exception:
+            print("Waiting...")
+            evador.safety_wait()
+        except Exception as exc:
             print_exc()
+            raise exc
 
 
 def get_credentials() -> Tuple[str, str]:
-    from os import environ
 
     username = environ.get('MOUSEHUNT_USERNAME')
     if not username:
@@ -156,19 +119,27 @@ def get_credentials() -> Tuple[str, str]:
     return username, password
 
 
+def run(username, password):
+    sleep(5)
+    try:
+        driver = get_driver(False)
+        go_to_login(driver)
+        login(driver, username, password)
+        handle_horn(driver)
+    except Exception as exp:
+        print_exc()
+        driver.close()
+        raise exp
+
+
 def main() -> None:
     username, password = get_credentials()
-    while True:
-        sleep(5)
-        try:
-            print("trying")
-            driver = get_driver()
-            go_to_login(driver)
-            login(driver, username, password)
-            handle_horn(driver)
-        except Exception:
-            print_exc()
-            driver.close()
+
+    def run_with_args():
+        run(username, password)
+
+    evador.until_successive_failures(run_with_args, 5)
 
 
-main()
+if __name__ == '__main__':
+    main()
