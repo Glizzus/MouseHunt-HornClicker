@@ -5,7 +5,7 @@ from getpass import getpass
 from os import environ
 
 import captchabeater
-import evador
+import evader
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -100,7 +100,7 @@ def handle_horn(driver: WebDriver) -> None:
             print("Sounding Horn")
             sound_horn(driver)
             print("Waiting...")
-            evador.safety_wait()
+            evader.safety_wait()
         except Exception as exc:
             print_exc()
             raise exc
@@ -138,7 +138,7 @@ def main() -> None:
     def run_with_args():
         run(username, password)
 
-    evador.until_successive_failures(run_with_args, 5)
+    evader.until_successive_failures(run_with_args, 5)
 
 
 if __name__ == '__main__':
