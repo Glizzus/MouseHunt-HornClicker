@@ -4,8 +4,8 @@ from traceback import print_exc
 from getpass import getpass
 from os import environ
 
-import src.captchabeater as captchabeater
-import src.evader as evader
+import captchabeater
+import evader
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
