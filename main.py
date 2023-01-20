@@ -122,7 +122,7 @@ def get_credentials() -> Tuple[str, str]:
 def run(username, password):
     sleep(5)
     try:
-        driver = get_driver(False)
+        driver = get_driver()
         go_to_login(driver)
         login(driver, username, password)
         handle_horn(driver)
