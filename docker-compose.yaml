@@ -5,5 +5,5 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      - MOUSEHUNT_USERNAME=calscrosby
-      - MOUSEHUNT_PASSWORD=1DifyPily!
+      - MOUSEHUNT_USERNAME=
+      - MOUSEHUNT_PASSWORD=
