@@ -3,6 +3,8 @@ from time import sleep
 from traceback import print_exc
 from getpass import getpass
 from os import environ
+import logging
+from sys import stdout
 
 import captchabeater
 import evader
@@ -41,8 +43,9 @@ def login(driver: WebDriver, username: str, password: str) -> None:
     sleep(1)
     login_script = "app.pages.LoginPage.loginHitGrab();"
     driver.execute_script(login_script)
+    logging.info("Login script attempted")
     driver.refresh()
-    print(f'User {username} has logged in')
+    logging.info(f'User {username} has logged in')
 
 
 def try_get_captcha_source(driver: WebDriver) -> str | None:
@@ -64,8 +67,8 @@ def handle_potential_captcha(driver: WebDriver) -> None:
                 captcha_found = True
             else:
                 break
-            print("Captcha found")
-            captchabeater.beat(driver, captchabeater)
+            logging.info("Captcha found")
+            captchabeater.beat(driver, captcha_source)
     except Exception:
         print_exc()
     finally:
@@ -73,12 +76,15 @@ def handle_potential_captcha(driver: WebDriver) -> None:
 
 
 def wait_until_horn_ready(driver: WebDriver) -> None:
-    minutes_to_wait = 60 * 16
-    poll_frequency = 30
     ready_element_class = "huntersHornView__timerState--type-ready"
     visibility_args = (By.CLASS_NAME, ready_element_class)
     horn_ready = EC.visibility_of_element_located(visibility_args)
-    WebDriverWait(driver, minutes_to_wait, poll_frequency).until(horn_ready)
+    args = {
+        'driver': driver,
+        'timeout': 60 * 16,
+        'poll_frequency': 30
+    }
+    WebDriverWait(**args).until(horn_ready)
 
 
 def sound_horn(driver: WebDriver) -> None:
@@ -91,15 +97,15 @@ def handle_horn(driver: WebDriver) -> None:
         try:
             sleep(5)
             print()
-            print("Checking for captcha")
+            logging.info("Checking for captcha")
             was_captcha = handle_potential_captcha(driver)
             if not was_captcha:
-                print("No captcha found")
-            print("Waiting for horn")
+                logging.info("No captcha found")
+            logging.info("Waiting for horn")
             wait_until_horn_ready(driver)
-            print("Sounding Horn")
+            logging.info("Sounding Horn")
             sound_horn(driver)
-            print("Waiting...")
+            logging.info("Waiting...")
             evader.safety_wait()
         except Exception as exc:
             print_exc()
@@ -123,7 +129,9 @@ def run(username, password):
     sleep(5)
     try:
         driver = get_driver()
+        logging.info("Driver created")
         go_to_login(driver)
+        logging.info("Attempting to log in")
         login(driver, username, password)
         handle_horn(driver)
     except Exception as exp:
@@ -133,7 +141,15 @@ def run(username, password):
 
 
 def main() -> None:
+    log_options = {
+        'stream': stdout,
+        'encoding': 'utf-8',
+        'level': logging.INFO
+    }
+    logging.basicConfig(**log_options)
+    logging.info("Starting...")
     username, password = get_credentials()
+    logging.info(f"Credentials received for user {username}")
 
     def run_with_args():
         run(username, password)

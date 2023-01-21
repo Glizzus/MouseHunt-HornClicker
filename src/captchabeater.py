@@ -4,6 +4,7 @@ import pytesseract
 from requests import get
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
+import logging
 
 
 def beat(driver: WebDriver, src: str) -> None:
@@ -17,6 +18,7 @@ def beat(driver: WebDriver, src: str) -> None:
     file_name = 'captcha.png'
 
     def download_to_temp_file():
+        logging.info(f"Downloading {src} to {file_name}")
         img = get(src).content
         with open(file_name, 'wb') as file:
             file.write(img)
@@ -42,7 +44,9 @@ def beat(driver: WebDriver, src: str) -> None:
     download_to_temp_file()
     text = extract_text()
     cleaned_text = sub('/[^0-9a-z]/gi', '', text)
-    print(f'Captcha attempt: {cleaned_text}')
+    logging.info(f'Captcha attempt: {cleaned_text}')
     enter_captcha(text)
     resume_script = "app.views.HeadsUpDisplayView.hud.resumeHunting()"
     driver.execute_script(resume_script)
+    logging.info("Attempting captcha solve.")
+    driver.refresh()
